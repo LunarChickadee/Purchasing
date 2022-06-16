@@ -1,0 +1,1 @@
+IDNumber Item Description «Sz.» «44cost» orderquantity «44available» SupplierID 
