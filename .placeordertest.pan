@@ -1,7 +1,7 @@
 global orderline, orderquantity, test2, intorder, ordersize
 ordersize=""
-
-
+orderline=""
+orderquantity=0
 intorder=""
 
 find Item=extract(itemlist," ",1)
@@ -30,7 +30,8 @@ endif
 
 //orderline=str(IDNumber)+¬+str(Item)+¬+Description+¬+str(«Sz.»)+¬+str(«44cost»)+¬+orderquantity+¬+str(int(«44available»))+¬+SupplierID+¶
 
-
+clipboard()=orderline
+stop
 
 window "44ogscomments.linked:Generate-POnew"
 
