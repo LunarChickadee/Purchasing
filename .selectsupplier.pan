@@ -1,11 +1,11 @@
-global forordering, itemlist, disorder, seconditemlist,whichsupplier
+global forordering, itemlist, disorder, seconditemlist
 superobject "fromsupplier", "Open"
 activesuperobject "Clear"
 activesuperobject "Close"
 forordering=""
 itemlist=""
 seconditemlist=""
-whichsupplier=""
+
 
 select SupplierNo_Primary=val(whichsupplier[1,"-"][1,-2])
 if info("empty")
