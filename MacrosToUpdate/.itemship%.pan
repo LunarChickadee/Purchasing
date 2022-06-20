@@ -2,7 +2,6 @@ local sumqty
 
 //updated 6-22 by lunar for PO entry error
 if info("formname") contains "Entry"
-sdfasd
 stop
 endif
 //endupdate
