@@ -2,7 +2,7 @@ global forordering, itemlist, disorder, seconditemlist
 superobject "fromsupplier", "Open"
 activesuperobject "Clear"
 activesuperobject "Close"
-forordering=""
+forordering=forordering
 itemlist=""
 seconditemlist=""
 

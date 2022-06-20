@@ -9,7 +9,7 @@ if info("found")
     getscrap "How many "+Description+" "+str(«Sz.»)+"# ?"
     orderquantity=clipboard()
         if val(orderquantity)=0
-            stop
+            stopd
         endif
     orderline=str(IDNumber)+¬+str(Item)+¬+Description+¬+str(«Sz.»)+¬+str(«44cost»)+¬+orderquantity+¬+str(int(«44available»))+¬+SupplierID+¶
 else
