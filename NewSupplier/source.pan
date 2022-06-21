@@ -12,7 +12,7 @@ addfield "Intrucking"+str(n)
 addfield "IntruckingEA"+str(n)
 addfield "UnitPrice"+str(n)
 addfield "BasePrice"+str(n)
-addfield "PriceUpdateDate"+str(n)
+addfield "PriceUpdateDate"+str(n)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
 n=n+1
 until n=36
 ˛/createlineitemsˇ˛.Inititalizeˇfileglobal varship
