@@ -1,0 +1,2 @@
+pattern(100*?(«wtPackedg1» = 0 and «wtPackedg2» = 0,(((((?(val(useReceived)=1,
+TotalWtReceived,TotalOrdered))*szE*CollatedE)/Collated)+(((?(val(useReceived)=1,TotalWtReceived,TotalOrdered))*(Collated-szE*CollatedE))/Collated)*?(Item=7990,.93,?(Item = 7995,.97,.98))-(Collated+undownloadedA+undownloadedB+undownloadedC+undownloadedD+undownloadedE))/((((?(val(useReceived)=

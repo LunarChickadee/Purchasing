@@ -1,0 +1,40 @@
+global vList, Mix, DB, itemStr, listOfItems,mixCode,mixArray
+
+Mix="MixesV2"
+DB="45MixPurchasingDB"
+
+
+loop
+
+
+    window DB
+    itemStr=«ItemNum»
+
+    Window Mix
+    find IngredientList contains itemStr
+
+    if info("found")
+        mixCode=«Mix Parent Code»
+    else
+        window DB
+        downrecord
+        repeatloopif ItemStr≠ItemNum
+    endif
+
+    window DB
+    Mix1=mixCode+","+Mix1
+
+    window Mix
+    next
+    if info("found")
+        mixCode=«Mix Parent Code»
+
+        window DB
+        Mix1=mixCode+","+Mix1
+        window DB
+        downrecord
+    else
+        window DB
+        downrecord
+until info("stopped")
+endif
