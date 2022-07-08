@@ -1,0 +1,1023 @@
+˛.Initializeˇselectall
+field Item 
+sortup
+
+;openfile "NewSupplier"
+;openfile "43OGSpurchasing"
+
+if folderpath(dbinfo("folder","")) CONTAINS "sarah" and info("databasename") contains "linked"
+    Field "IDNumber"
+    SortUp
+    SelectDuplicates ""
+    if info("empty")
+        field Item 
+        sortup
+    else
+        message "Oh no, there are duplicate IDs!"
+    endif
+endif
+
+if folderpath(dbinfo("folder","")) CONTAINS "stasha"
+    call "Hide Most Fields"
+endif˛/.Initializeˇ˛.add-it-up-orderingˇglobal orderingaddup, soldwta, soldwtb, soldwtc, availwt, reord, soldwtatotal, soldwtbtotal, soldwtctotal, availwttotal, reordtotal
+
+;;debug
+
+arrayselectedbuild orderingaddup,¶, "44ogscomments.linked",
+str(«42sold»)+¬+str(«43sold»)+¬+str(«44sold»)+¬+str(«44available»)+¬+str(«min»)+¬+str(«unit conversion»)+¬+str(«42sold»*«unit conversion»)
++¬+str(«43sold»*«unit conversion»)+¬+str(«44sold»*«unit conversion»)+¬+str(«44available»*«unit conversion»)+¬+str(«min»*«unit conversion»)
+
+;;displaydata orderingaddup
+
+arrayfilter orderingaddup, soldwta,¶,extract(import(),¬,7)
+arrayfilter orderingaddup, soldwtb,¶,extract(import(),¬,8)
+arrayfilter orderingaddup, soldwtc,¶,extract(import(),¬,9)
+arrayfilter orderingaddup, availwt,¶,extract(import(),¬,10)
+arrayfilter orderingaddup, reord,¶,extract(import(),¬,11)
+
+;;displaydata reord
+
+arraynumerictotal soldwta,¶, soldwtatotal
+arraynumerictotal soldwtb,¶, soldwtbtotal
+arraynumerictotal soldwtc,¶, soldwtctotal
+arraynumerictotal availwt,¶, availwttotal
+arraynumerictotal reord,¶, reordtotal
+;;message reordtotal
+
+if info("windowtype") = 15
+    drawobjects
+endif˛/.add-it-up-orderingˇ˛.clear_summariesˇRemoveSummaries 7˛/.clear_summariesˇ˛.dropshipˇglobal ordersize, export, given, pon, suppinfo, intorder, progress, poitemarray
+suppinfo=""
+intorder=""
+poitemarray=""
+local waswindow, RecCount, ItemCount, POL#
+waswindow=info("windowname")
+
+yesno "you sure you're ready to place order?"
+
+if val(forordering["0-9",1])=0
+    message "Try adding a few items to the order first"
+    stop 
+endif
+if clipboard() contains "n"
+    window waswindow
+    stop
+endif
+
+openfile "NewSupplier"
+find SupplierIDNumber=val(extract(whichsupplier, "-", 1))
+arraylinebuild suppinfo, ¶, "NewSupplier", str(SupplierIDNumber)+¬+Supplier+¬+¬+¬+Contact+¬+Fax+¬+Email+¬+Phone+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####")
+
+window waswindow
+forordering=arraystrip(forordering,¶)
+arrayfilter forordering, intorder, ¶, extract(extract(forordering, ¶, seq()),¬, 1)+¬+extract(extract(forordering, ¶, seq()),¬, 2)+¬+
+    extract(extract(forordering, ¶, seq()),¬, 3)+¬+extract(extract(forordering, ¶, seq()),¬, 4)+¬+
+    extract(extract(forordering, ¶, seq()),¬, 5)+¬+extract(extract(forordering, ¶, seq()),¬, 6)+¬+
+    extract(extract(forordering, ¶, seq()),¬, 7)+¬+suppinfo+¬+¬+¬+extract(extract(forordering, ¶, seq()),¬, 8)
+
+
+arraysort intorder,intorder,¶
+
+
+export=intorder
+
+
+ordersize=extract(extract(intorder,¶, 1),¬,5)
+
+
+openfile "44ogsdropship"
+Synchronize
+goform "Entry"
+selectall
+field PO
+SortUp
+RecCount=info("Records")
+
+openfile "+@export"
+
+ItemCount=info("Records")-RecCount
+
+
+if ItemCount>1
+    field PO
+    Maximum
+    Copy
+    RemoveSummaries 7
+    clipboard()=val(clipboard()+1)
+    LastRecord
+    Paste
+        loop
+            uprecord
+            Paste
+        until ItemCount-1
+    copycell
+    ;message clipboard()
+    select PO=val(clipboard())
+    field «PO Line No»
+    FormulaFill seq()
+    field Date
+    Date=today()
+    field OrderNo
+    formulafill vvoice
+else
+    field PO
+    Maximum
+    Copy
+    RemoveSummaries 7
+    clipboard()=val(clipboard()+1)
+    LastRecord
+    Paste
+    field «PO Line No»
+    «PO Line No»=1
+    field Date
+    Date=today()
+    OrderNo=vvoice
+endif
+selectall
+lastrecord
+if ItemCount>1
+    loop
+        uprecord
+    until ItemCount-1
+endif
+
+lastrecord
+field PO
+COPY
+select PO=val(clipboard())
+call Gather
+
+;message "hello"
+
+debug
+;message "history"
+window waswindow
+select Item = lookupselected("44ogsdropship","Item",Item,"Item","",0)
+;message "last"
+if info("empty")
+    goto warehouse
+endif
+
+field «Purchased»
+formulafill «Purchased»+lookupselected("44ogsdropship",Item,Item,"Qty",0,0)
+
+warehouse:
+openfile "44ogscomments.warehouse"
+select Item=lookupselected("44ogsdropship","Item",Item,"Item","",0)
+
+if info("empty")
+else
+    field «Purchased»
+    formulafill «Purchased»+lookupselected("44ogsdropship",Item,Item,"Qty",0,0)
+endif
+
+window "44ogsdropship:Entry"
+lastrecord
+˛/.dropshipˇ˛.exportˇglobal ordersize, export, given, pon, suppinfo, intorder, progress, poitemarray
+suppinfo=""
+intorder=""
+poitemarray=""
+local waswindow, RecCount, ItemCount, POL#
+waswindow=info("windowname")
+
+yesno "you sure you're ready to place order?"
+
+if val(forordering["0-9",1])=0
+    message "Try adding a few items to the order first"
+    stop 
+endif
+if clipboard() contains "n"
+    window waswindow
+    stop
+endif
+
+openfile "NewSupplier"
+find SupplierIDNumber=val(extract(whichsupplier, "-", 1))
+arraylinebuild suppinfo, ¶, "NewSupplier", str(SupplierIDNumber)+¬+Supplier+¬+¬+¬+Contact+¬+Fax+¬+Email+¬+Phone+¬+MAd+¬+City+¬+St+¬+pattern(Zip,"#####")
+
+window waswindow
+forordering=arraystrip(forordering,¶)
+arrayfilter forordering, intorder, ¶, extract(extract(forordering, ¶, seq()),¬, 1)+¬+extract(extract(forordering, ¶, seq()),¬, 2)+¬+
+    extract(extract(forordering, ¶, seq()),¬, 3)+¬+extract(extract(forordering, ¶, seq()),¬, 4)+¬+
+    extract(extract(forordering, ¶, seq()),¬, 5)+¬+extract(extract(forordering, ¶, seq()),¬, 6)+¬+
+    extract(extract(forordering, ¶, seq()),¬, 7)+¬+suppinfo+¬+¬+¬+extract(extract(forordering, ¶, seq()),¬, 8)
+
+
+arraysort intorder,intorder,¶
+
+
+export=intorder
+
+
+ordersize=extract(extract(intorder,¶, 1),¬,5)
+
+
+openfile "44OGSpurchasing"
+Synchronize
+;message "yup"
+goform "Entry"
+;message "still good"
+selectall
+field PO
+SortUp
+RecCount=info("Records")
+
+openfile "+@export"
+
+ItemCount=info("Records")-RecCount
+
+
+if ItemCount>1
+    field PO
+    Maximum
+    Copy
+    RemoveSummaries 7
+    clipboard()=val(clipboard()+1)
+    LastRecord
+    Paste
+        loop
+            uprecord
+            Paste
+        until ItemCount-1
+    copycell
+    ;message clipboard()
+    select PO=val(clipboard())
+    field «PO Line No»
+    FormulaFill seq()
+    field Date
+    Date=today()
+else
+    field PO
+    Maximum
+    Copy
+    RemoveSummaries 7
+    clipboard()=val(clipboard()+1)
+    LastRecord
+    Paste
+    field «PO Line No»
+    «PO Line No»=1
+    field Date
+    Date=today()
+endif
+selectall
+lastrecord
+if ItemCount>1
+    loop
+        uprecord
+    until ItemCount-1
+endif
+
+lastrecord
+field PO
+COPY
+select PO=val(clipboard())
+call Gather
+
+;message "hello"
+
+debug
+;message "history"
+window waswindow
+select Item = lookupselected("44OGSpurchasing","Item",Item,"Item","",0)
+;message "last"
+if info("empty")
+    goto warehouse
+endif
+
+field «On Order»
+formulafill «On Order»+lookupselected("44OGSpurchasing",Item,Item,"Qty",0,0)
+
+warehouse:
+openfile "44ogscomments.warehouse"
+select Item=lookupselected("44OGSpurchasing","Item",Item,"Item","",0)
+
+if info("empty")
+else
+    field «On Order»
+    formulafill «On Order»+lookupselected("44OGSpurchasing",Item,Item,"Qty",0,0)
+endif
+
+window "44OGSpurchasing:Entry"
+firstrecord
+progress = str(PO)+¬+¬+¬+¬+¬+¬+¬+¬+str(SupplierID)+¬+Company+¬+¬+datestr(Date)+¬+str(Total)
+openfile "44OGSinvoices"
+openfile "+@progress"
+˛/.exportˇ˛.get_summariesˇSelect «can be added up» contains "Y"
+
+Field «parent_code»
+GroupUp
+
+Field «can be added up»
+Maximum
+
+Field TotalPoundsToSell
+Maximum
+
+SelectAll˛/.get_summariesˇ˛.limitˇif
+val(length(Description))>20
+message "Description is too long"
+endif˛/.limitˇ˛.LiveQueryˇfileglobal liveQuery, queryResult
+liveclairvoyance liveQuery, queryResult, ¶, "The List", "NewSupplier", Supplier, "contains", str(SupplierIDNumber)+¬+Supplier, 30,0,""
+;superobject "The List", "Open", "FillList", "close"
+
+;drawobjects
+
+˛/.LiveQueryˇ˛.placeorderˇglobal orderline, orderquantity
+
+find Item=extract(itemlist," ",1)
+if info("found")
+    getscrap "How many "+Description+" "+str(«Sz.»)+"# ?"
+else
+    window "44ogscomments.warehouse"
+    find Item=extract(itemlist," ",1)
+    getscrap "How many "+Description+" "+str(«Sz.»)+"# ?"
+endif
+
+orderquantity=clipboard()
+if val(orderquantity)=0
+    stop
+endif
+
+orderline=str(IDNumber)+¬+str(Item)+¬+Description+¬+str(«Sz.»)+¬+str(«44cost»)+¬+orderquantity+¬+str(int(«44available»))+¬+SupplierID+¶
+
+window "44ogscomments.linked:Generate-POnew"
+
+forordering=forordering+orderline
+superobject "fromsupplier", "open"
+activesuperobject "Close"
+˛/.placeorderˇ˛.selectaparentˇlocal parento
+gettext "Which Item? (XXXX)",parento
+select «parent_code»=val(parento)˛/.selectaparentˇ˛.selectsupplierˇglobal forordering, itemlist, disorder, seconditemlist
+superobject "fromsupplier", "Open"
+activesuperobject "Clear"
+activesuperobject "Close"
+forordering=""
+itemlist=""
+seconditemlist=""
+
+select SupplierNo_Primary=val(whichsupplier[1,"-"][1,-2])
+if info("empty")
+else
+    arrayselectedbuild itemlist, ¶,"",str(Item)[1,-1]+rep(chr(32),31-length(Description[1,30]))+Description[1,30]+rep(chr(32), 5-length(str(«Sz.»)))+str(«Sz.»)
+ +rep(chr(32),7-length(str(«44cost»)))+str(«44cost»)+rep(chr(32),7-length(str(«44available»)))+str(«44available»)
+ endif
+ 
+ ;; go to comments.warehouse
+ openfile "44ogscomments.warehouse"
+ select SupplierNo_Primary=val(whichsupplier[1,"-"][1,-2])
+ 
+ if info("empty")
+ else
+     ;; build a similar array
+arrayselectedbuild seconditemlist, ¶,"",str(Item)[1,-1]+rep(chr(32),31-length(Description[1,30]))+Description[1,30]+rep(chr(32), 5-length(str(«Sz.»)))+str(«Sz.»)
+ +rep(chr(32),7-length(str(«44cost»)))+str(«44cost»)+rep(chr(32),7-length(str(«44available»)))+str(«44available»)
+    
+ endif
+ 
+ ;; append it to itemlist
+ itemlist = itemlist + ¶ + seconditemlist
+ 
+ window "44ogscomments.linked:Generate-POnew"
+
+superobject "neworder", "FillList"
+
+˛/.selectsupplierˇ˛get next IDˇ;; This macro finds the highest permanent ID in the database, and generates the next ID
+;; to come after that. The next ID is displayed in a popup message, and is put onto
+;; the clipboard, so you can easily paste it.
+
+local all_items, num_items, last_item
+
+arraybuild all_items,¶,"",IDNumber
+arraynumericsort all_items,all_items,¶
+
+num_items = arraysize(all_items,¶)
+last_item = val(array(all_items,num_items,¶))
+
+clipboard() = last_item + 1
+message "Whichever item is the newer one should get an ID of " + str(last_item+1)˛/get next IDˇ˛bookpricelinesˇ;; this macro generates catalog pricelines for books. It looks like the priceline field
+;; is currently being used for something else, so check with Renee before running
+;; this as it will wipe out the contents of that field. -SAO 9/7/21
+
+field priceline
+formulafill ¬+str(Item)+": "+Description+" ("+str(sz)+"#)/"+pattern(Price, "$#.##")˛/bookpricelinesˇ˛ChkInvˇ;; This macro is not currently functional, but could in theory be rehabilitated. What it's *trying*
+;; to do is loop through all selected records, and if 44available is less than the reorder point,
+;; it'll ask you if you want to change the reorder point. There is not currently a field in the
+;; database called "reorder point," so it doesn't work.
+
+
+local stuff
+loop
+    if «44available»≤«reorder point»
+        stuff="Hey! "+str(«Item»)+" "+str(«Sz.»)+"#'s is gettin' low. Would you like to change the reorder threshold?"
+        noyes stuff
+        if clipboard() contains "y"
+            getscrap "New reorder threshold for "+str(«Item»)+"?"
+            «reorder point»=val(Clipboard())
+        endif
+    endif
+downrecord
+until info("eof")    ˛/ChkInvˇ˛pricelinesˇ;; Fills in catalog pricelines. Don't run this without checking with Renee, as it looks like she is
+;; using the priceline field for something else currently. -SAO 9/7/21
+
+field priceline
+formulafill ¬+str(Item)+": "+?(«unit note»="",str(«Sz.»)+"# for "+pattern(Price, "$#.##"),«unit note»+" ("+str(«Sz.»)+"#) for "+pattern(Price, "$#.##"))
+˛/pricelinesˇ˛tabdown/2ˇ;; a helper macro that triggers equations to recalculate
+
+firstrecord
+loop
+Cell «»
+downrecord
+until info("stopped")
+˛/tabdown/2ˇ˛add it up selectionˇ;; I think this macro isn't used by anyone. Check with Stasha. -SAO 9/7/21
+
+;; runs the add it up macro just on the current selection.
+;; only works on products with "can be added up" = "Y"
+;; you must have all sizes selected. You can have one or more
+;; products selected, as long as all sizes of each are selected.
+
+Selectwithin «can be added up» contains "Y"
+Field "parent_code"
+GroupUp
+
+Field TotalPoundsToSell
+FormulaFill «unit conversion»*«44available»
+Total
+
+CollapseToLevel "1"
+Field "TotalUnitsToSell"
+FormulaFill TotalPoundsToSell
+
+CollapseToLevel "Data"
+
+Field "TotalPoundsToSell"
+Fill ""
+CollapseToLevel "1"
+
+FormulaFill TotalUnitsToSell
+
+CollapseToLevel "Data"
+Field "TotalPoundsToSell"
+PropagateUP
+
+RemoveSummaries "7"
+
+Field "TotalUnitsToSell"
+FormulaFill TotalPoundsToSell/?(«unit conversion»>0,«unit conversion»,1)
+
+SelectAll
+
+Field "Item"
+Sortup˛/add it up selectionˇ˛findathing/1ˇ;; This is used in the add-it-up-purchasing form
+
+getscrap "Which Item?"
+if val(clipboard())=0
+find Description contains clipboard()
+else
+find Item contains clipboard()
+endif˛/findathing/1ˇ˛add-it-up-purchasingˇglobal orderingaddup, soldwta, soldwtb, soldwtc, availwt, reord, soldwtatotal, soldwtbtotal, soldwtctotal, availwttotal, reordtotal
+
+arrayselectedbuild orderingaddup,¶, "44ogscomments.linked",
+str(«42sold»)+¬+str(«43sold»)+¬+str(«44sold»)+¬+str(«44available»)+¬+str(«reorder point»)+¬+str(«unit conversion»)+¬+str(«42sold»*«unit conversion»)
++¬+str(«43sold»*«unit conversion»)+¬+str(«44sold»*«unit conversion»)+¬+str(«44available»*«unit conversion»)+¬+str(«reorder point»*«unit conversion»)
+
+;;displaydata orderingaddup
+
+arrayfilter orderingaddup, soldwta,¶,extract(import(),¬,7)
+arrayfilter orderingaddup, soldwtb,¶,extract(import(),¬,8)
+arrayfilter orderingaddup, soldwtc,¶,extract(import(),¬,9)
+arrayfilter orderingaddup, availwt,¶,extract(import(),¬,10)
+arrayfilter orderingaddup, reord,¶,extract(import(),¬,11)
+
+;;displaydata reord
+
+arraynumerictotal soldwta,¶, soldwtatotal
+arraynumerictotal soldwtb,¶, soldwtbtotal
+arraynumerictotal soldwtc,¶, soldwtctotal
+arraynumerictotal availwt,¶, availwttotal
+arraynumerictotal reord,¶, reordtotal
+;;message reordtotal
+
+if info("windowtype") = 15
+    drawobjects
+endif˛/add-it-up-purchasingˇ˛Check a Pickup/3ˇ;; Looks like this macro is supposed to help check the inventory
+;; of items needed for a pickup order (or orders).
+;; Not sure if this macro is currently being used. -SAO 9/7/21
+
+local nolines
+getscrap "How Many Items?"
+nolines=val(clipboard())
+getscrap "First Item:"
+select Item contains clipboard()
+if nolines>1
+loop
+getscrap "Next Item:"
+selectadditional Item contains clipboard()
+until nolines-1
+endif
+goform "Inventory for Pickup"˛/Check a Pickup/3ˇ˛How Much?/4ˇ;; tells you the value of 44available for whatever record you're currently on.
+;; Not sure if this macro is being used -SAO 9/7/21
+
+message «44available»˛/How Much?/4ˇ˛Generate a Pricelineˇ;; exports a text file with a priceline for one item (whatever record is active).
+;; not sure if this macro is used -SAO 9/7/21
+
+local thisone
+thisone=Item
+select Item=thisone
+export Description+" priceline",Description+"®"+¬+str(Item)+": "+?(«unit note»≠""," "+«unit note»+" ","")+?(Comments="",str(«Sz.»)+"#/"," ("+str(«Sz.»)+"#)/")+pattern(Price, "$#.##")+?(Price≥100,"*","")
+selectall
+find Item=thisone˛/Generate a Pricelineˇ˛pricelines-screwyˇ;; not sure whether this macro is used -SAO 9/7/21
+
+;select Listed contains "cat"
+field priceline
+formulafill ¬+str(«sparetext4»)+": "+?(«unit note»="",str(«Sz.»)+"#/"+pattern(CatalogPrice, "$#.##"),«unit note»+" ("+str(«Sz.»)+"#)/"+pattern(CatalogPrice, "$#.##"))˛/pricelines-screwyˇ˛deleteˇ;; Loops through the database and deletes all selected records
+;; (except for the last one). Seems dangerous! Consider removing? -SAO 9/7/21
+
+yesno "are you sure you want to run the delete macro?"
+if clipboard() contains "y"
+loop
+deleterecord
+until info("selected")=1
+else
+stop
+endif˛/deleteˇ˛checknofaˇ;; I think this macro checks to make sure each successive
+;; size code for a given item actually gives you a better deal
+;; (by weight). Seems like it's intended to be run while you
+;; have all size codes selected for a given seed variety.
+
+local priceone, pricetwo
+loop
+priceone=CatalogNOFA/ActWt
+loop
+downrecord
+pricetwo=divzero(CatalogNOFA,ActWt)
+if pricetwo>.95*priceone
+message "check"
+stop
+endif
+priceone=pricetwo
+until info("summary")>0
+downrecord
+until Category notcontains "Seed"˛/checknofaˇ˛selectmoreˇglobal vitemy
+loop
+vitemy=«parent_code»
+selectadditional «parent_code»=vitemy and Listed≠"No"
+loop
+downrecord
+until «parent_code»=vitemy
+loop
+downrecord 
+until «parent_code»≠vitemy
+until info("stopped")˛/selectmoreˇ˛Intrucking change by wtˇ;; this macro allows you to input the cost of intrucking a 50# bag and automatically
+;; calculate the intrucking of the smaller sizes, though you DO need to tab
+;; through to get the "base" to update
+
+local tempvariable, costvariable, perpound
+gettext "What item number? XXXX", tempvariable
+Select «Item» contains tempvariable
+Find «ActWt»=50
+gettext "new cost?", costvariable
+costvariable=val(costvariable)
+«intrucking»=costvariable
+perpound=costvariable/50
+Field «intrucking»
+FormulaFill perpound*«ActWt»˛/Intrucking change by wtˇ˛What's available by the #ˇlocal tempvariable, totalvariable
+gettext "What item number? XXXX", tempvariable
+Select «Item» contains tempvariable
+Field sparemoney3
+FormulaFill «Sz.»*«44available»
+Total
+lastrecord
+totalvariable=sparemoney3
+removeallsummaries
+message "we currently have "+str(totalvariable)+" pounds available"
+
+;This is for automatically calculating how many total pounds we currently have available of a product 8/4/21 RM˛/What's available by the #ˇ˛(Purchasing)ˇ˛/(Purchasing)ˇ˛bringonthebooks/5ˇ;; Looks like this macro is for receiving books. Maybe because book orders
+;; don't go through the purchasing database?
+
+local justso, desc, somany
+
+again:
+justso=""
+desc=""
+somany=0
+select Category contains "Book"
+getscrap "Which book came in?"
+justso=clipboard()
+selectwithin Description contains justso
+desc=Description
+getscrap "How many " +desc+ "s came in?"
+somany=val(clipboard())
+
+field Purchased
+Purchased=Purchased+somany
+field «On Order»
+«On Order»=«On Order»-somany
+
+Yesno 
+"Did any other books come in?"
+if clipboard() contains "Yes"
+goto again
+else 
+endif
+
+
+˛/bringonthebooks/5ˇ˛Annual - Pounds Neededˇlocal tempvariable, totalvariable
+gettext "What item number? XXXX", tempvariable
+Select «Item» contains tempvariable
+Field sparemoney3
+FormulaFill «Sz.»*«43sold»
+Total
+lastrecord
+totalvariable=sparemoney3
+removeallsummaries
+message "last year we sold "+str(totalvariable)+" pounds"
+
+;This is for automatically calculating how many total pounds we sold last year of a product 8/4/21 RM˛/Annual - Pounds Neededˇ˛All Seed Sizes and Mixesˇlocal tempvariable
+gettext "What item number? XXXX", tempvariable
+Select «Item» contains tempvariable or «mixkit» contains tempvariable˛/All Seed Sizes and Mixesˇ˛What did we sell/9ˇif «add/drop» contains "new"
+message str(«44sold»)+" sold so far this year"
+else
+message "43sold: "+str(«43sold»)+¶+"42sold: "+str(«42sold»)+¶+¶+str(«44sold»)+" sold so far this year"
+endif˛/What did we sell/9ˇ˛Cost Change 50#&smallerˇ;; this macro allows you to input the cost of a 50# bag and automatically 
+;; calculate the cost of the smaller sizes, though you DO need to tab 
+;; through to get the "base" to update
+
+local tempvariable, costvariable, perpound
+gettext "What item number? XXXX", tempvariable
+Select «Item» contains tempvariable
+Find «ActWt»=50
+gettext "new cost?", costvariable
+costvariable=val(costvariable)
+«44cost»=costvariable
+perpound=costvariable/50
+Field «44cost»
+FormulaFill perpound*«ActWt»
+
+˛/Cost Change 50#&smallerˇ˛Cost Change 25#&smallerˇ;; this macro allows you to input the cost of a 25# bag and automatically 
+;; calculate the cost of the smaller sizes, though you DO need to tab 
+;; through to get the "base" to update
+
+local tempvariable, costvariable, perpound
+gettext "What item number? XXXX", tempvariable
+Select «Item» contains tempvariable
+Find «ActWt»=25
+gettext "new cost?", costvariable
+costvariable=val(costvariable)
+«44cost»=costvariable
+perpound=costvariable/25
+Field «44cost»
+FormulaFill perpound*«ActWt»
+
+˛/Cost Change 25#&smallerˇ˛(Inventory)ˇ˛/(Inventory)ˇ˛tallyfilledupdateˇrememberwindow
+openfile "44filledogs"
+
+originalwindow
+
+Field ("44tallyfilled")
+Select «» <> lookupselected("44filledogs","IDNumber",IDNumber,"fill",0,1)
+
+selectwithin IDNumber=lookupselected("44filledogs","IDNumber",IDNumber,"IDNumber",0,1)
+
+Field ("44tallyfilled")
+formulafill lookupselected("44filledogs","IDNumber",IDNumber,"fill",0,1)
+
+SelectAll
+window "44filledogs"
+closewindow
+
+originalwindow
+
+message "Finished Tally Filled Update"˛/tallyfilledupdateˇ˛tallysoldupdateˇrememberwindow
+openfile "44orderedogs"
+
+originalwindow
+
+field ("44soldtally")
+select «» <> lookupselected("44orderedogs","IDNumber", IDNumber, "qty", 0,1)
+
+Selectwithin IDNumber=lookupselected("44orderedogs","IDNumber",IDNumber,"IDNumber",0,1)
+
+field ("44soldtally")
+formulafill lookupselected("44orderedogs","IDNumber", IDNumber, "qty", 0,1)
+
+;;Field ("44sold")
+;;call "tabdown/2"
+;;Field ("44available")
+;;call "tabdown/2"
+;;Field ("44inhouse")
+;;call "tabdown/2"
+
+SelectAll
+
+window "44orderedogs"
+closewindow
+
+originalwindow
+
+message "Finished Tally Sold Update"˛/tallysoldupdateˇ˛rebuild_repack_numbersˇrememberwindow
+openfile "repack_vertical_file"
+
+originalwindow
+
+Field ("44repack")
+Select «» <> lookupselected("repack_vertical_file","IDNumber",IDNumber,"Net",0,0)
+
+selectwithin IDNumber=lookupselected("repack_vertical_file","IDNumber",IDNumber,"IDNumber",0,0)
+
+Field ("44repack")
+formulafill lookupselected("repack_vertical_file","IDNumber",IDNumber,"Net",0,0)
+
+;;call "tabdown/2"
+
+SelectAll
+window "repack_vertical_file"
+closewindow
+
+originalwindow
+
+message "Finished Repack Update"˛/rebuild_repack_numbersˇ˛walkin_sales_updateˇrememberwindow
+openfile "44walkin_vertical_ogs"
+
+originalwindow
+Field ("44soldwalkin")
+Select «» <> lookupselected("44walkin_vertical_ogs","IDNumber",IDNumber,"qty",0,1)
+
+selectwithin IDNumber=lookupselected("44walkin_vertical_ogs","IDNumber",IDNumber,"IDNumber",0,1)
+
+Field ("44soldwalkin")
+formulafill lookupselected("44walkin_vertical_ogs","IDNumber",IDNumber,"qty",0,1)
+
+SelectAll
+window "44walkin_vertical_ogs"
+closewindow
+
+originalwindow
+
+;;--------------------------- transfers -----------------------;;
+
+openfile "44transfers_vertical_ogs"
+
+originalwindow
+Field ("44transfers")
+Select «» <> lookupselected("44transfers_vertical_ogs","IDNumber",IDNumber,"qty",0,1)
+
+selectwithin IDNumber=lookupselected("44transfers_vertical_ogs","IDNumber",IDNumber,"IDNumber",0,1)
+
+Field ("44transfers")
+formulafill lookupselected("44transfers_vertical_ogs","IDNumber",IDNumber,"qty",0,1)
+
+SelectAll
+window "44transfers_vertical_ogs"
+closewindow
+
+originalwindow
+
+message "Finished Walk-in Sales Update"˛/walkin_sales_updateˇ˛add it upˇSelectall
+
+NoShow
+
+;;-------------------SOLD----------------------
+
+Select «44sold» <> («44soldtally»+«44soldwalkin»+«44transfers»+«44soldseeds»)
+if info("empty")
+    SelectAll
+else
+    Field ("44soldtally")
+    call "tabdown/2"
+endif
+
+Select «44sold» <> («44soldtally»+«44soldwalkin»+«44transfers»+«44soldseeds»)
+if info("empty")
+    SelectAll
+else
+    Field ("44soldwalkin")
+    call "tabdown/2"
+endif
+
+Select «44sold» <> («44soldtally»+«44soldwalkin»+«44transfers»+«44soldseeds»)
+if info("empty")
+    SelectAll
+else
+    Field ("44transfers")
+    call "tabdown/2"
+endif
+
+;; ---------------------------------AVAILABLE---------------------------------
+
+Select «44available» <> (Initial+Purchased+«44repack»-«44soldtally»-«44soldwalkin»-«44soldseeds»-«44transfers»+Adjustments)
+if info("empty")
+    SelectAll
+else
+    Field ("44repack")
+    call "tabdown/2"
+endif
+
+;; --------------------------------IN HOUSE-----------------------------
+
+Select «44inhouse» <> («44available»+(«44soldtally»-«44tallyfilled»))
+if info("empty")
+    SelectAll
+else
+    Field ("44soldtally")
+    call "tabdown/2"
+endif
+
+Select «44inhouse» <> («44available»+(«44soldtally»-«44tallyfilled»))
+if info("empty")
+    SelectAll
+else
+    Field ("44tallyfilled")
+    call "tabdown/2"
+endif
+
+;; -------------------------------- add it up -------------------------
+
+SelectAll
+openfile "44ogscomments"
+openfile "&&44ogscomments.linked"
+
+Select «can be added up» contains "Y"
+Field "parent_code"
+GroupUp
+
+Field TotalPoundsToSell
+FormulaFill «unit conversion»*«44available»
+Total
+
+CollapseToLevel "1"
+Field "TotalUnitsToSell"
+FormulaFill TotalPoundsToSell
+
+CollapseToLevel "Data"
+
+Field "TotalPoundsToSell"
+Fill ""
+CollapseToLevel "1"
+
+FormulaFill TotalUnitsToSell
+
+CollapseToLevel "Data"
+Field "TotalPoundsToSell"
+PropagateUP
+
+RemoveSummaries "7"
+
+Field "TotalUnitsToSell"
+FormulaFill TotalPoundsToSell/?(«unit conversion»>0,«unit conversion»,1)
+
+Select «can be added up» contains "N"
+Field "TotalUnitsToSell"
+FormulaFill «44available»
+
+EndNoShow
+
+window "44ogscomments.linked"
+
+Field "TotalUnitsToSell"
+Select «» <> lookupselected("44ogscomments","IDNumber",IDNumber,"TotalUnitsToSell",0,0)
+FormulaFill lookup("44ogscomments","IDNumber",IDNumber,"TotalUnitsToSell",0,0)
+
+Field "TotalPoundsToSell"
+Select «» <> lookupselected("44ogscomments","IDNumber",IDNumber,"TotalPoundsToSell",0,0)
+FormulaFill lookup("44ogscomments","IDNumber",IDNumber,"TotalPoundsToSell",0,0)
+
+SelectAll
+
+Field "Item"
+Sortup
+
+message "Finished with Add-it-up!"˛/add it upˇ˛Negative Reportˇ;; searches for items that are less than 0 for Stasha to go and investigate.
+
+local fieldstoshow
+fieldstoshow = "Item"+¶+"Description"+¶+"Sz."+¶+"Comments"+¶+"notes"+¶+"44available"
+
+Field "Item" Select «44available» < 0 or «44inhouse» < 0
+
+showthesefields fieldstoshow
+
+openform "Inventory Report"˛/Negative Reportˇ˛Hide Most Fieldsˇlocal fieldstoshow
+fieldstoshow = "Listed"+¶+"IDNumber"+¶+"Item"+¶+"Description"+¶+"Sz."+¶+"ActWt"+¶+"Comments"+¶+"notes"+¶+"44available"+¶+"TotalPoundsToSell"+¶+"TotalUnitsToSell"+¶+"Initial"+¶+"Adjustments"+¶+"44sold"+¶+"44inhouse"+¶+"44tallyfilled"+¶+"44soldtally"+¶+"44soldwalkin"+¶+"44repack"+¶+"unit note"
+
+showthesefields fieldstoshow˛/Hide Most Fieldsˇ˛Inquiryˇsetwindow 72,96,500,800, "noHorzScroll noVertScroll"
+openform "Inquiry"
+
+
+˛/Inquiryˇ˛Zero Reportˇ;;Searchs for items that have a 0 "44Available" to make sure that comments are filled in and counts are accurate.
+
+Local fieldstoshow
+fieldstoshow = "Item"+¶+"Description"+¶+"Sz."+¶+"Comments"+¶+"44available"
+
+Field "Item"
+
+Select («44available» = 0 or «44inhouse» = 0) and «Comments» notcontains "clearance" and «notes» notcontains "clearance" and «Comments» notcontains "service"
+
+showthesefields fieldstoshow
+
+openform "Inventory Report"˛/Zero Reportˇ˛Update RepackˇField "44repack"
+Select «44repack» <> 0
+
+firstrecord
+loop
+Cell «»
+downrecord
+until info("stopped")
+˛/Update Repackˇ˛PricelineˇField "add/drop"
+Select «priceline» notcontains |||21||| or sizeof("priceline") = 0 and («add/drop» notcontains |||drop|||) ˛/Pricelineˇ˛dropˇField «IDNumber»
+Sortup
+Selectduplicates IDNumber˛/dropˇ˛.permIDˇ˛/.permIDˇ˛.selectIDˇItem = lookup("44ogscomments.linked","Item",«Item»,"IDNumber",0,0)
+Description = lookup("44ogscomments.linked", "Item", «Item», "Description","",0)˛/.selectIDˇ˛Sale Historyˇ;;Searches sale history
+
+Local fieldstoshow
+fieldstoshow = "Item"+¶+"Description"+¶+"44available"+¶+"44sold"+¶+"43sold"+¶+"42sold"+¶+"41sold"+¶+"40sold"
+
+showthesefields fieldstoshow
+˛/Sale Historyˇ˛FY42 - Pounds Soldˇlocal tempvariable, totalvariable
+gettext "What item number? XXXX", tempvariable
+Select «Item» contains tempvariable
+Field sparemoney3
+FormulaFill «Sz.»*«42sold»
+Total
+lastrecord
+totalvariable=sparemoney3
+removeallsummaries
+message "in FY42 we sold "+str(totalvariable)+" pounds"
+
+;This is for automatically calculating how many total pounds we sold FY42 of a product 8/4/21 RM˛/FY42 - Pounds Soldˇ˛On Order Correctionˇglobal IDarray, strOnOrder, vRemain, vIDNum, Purchase, Comments
+
+Purchase="44OGSpurchasing"
+Comments="44ogscomments.linked"
+
+window Purchase
+removeallsummaries
+select Qty>Received
+selectwithin IDNumber>1
+selectwithin IDNumber<800000
+
+arrayselectedbuild IDarray, ¶, "", IDNumber
+
+window Comments
+select str(IDarray) contains str(IDNumber)
+
+window Purchase
+field IDNumber
+groupup
+Field RemainingOnOrder
+total
+field IDNumber
+propagate
+field Description
+propagate
+outlinelevel "1"
+lastrecord
+deleterecord
+nop
+firstrecord
+
+loop
+window Purchase
+vIDNum=«IDNumber»
+vRemain=RemainingOnOrder
+
+window Comments
+find IDNumber=vIDNum
+//future user, this macro doesn't know how to search
+//for items in the warehouse file, so it skips any it can't find in
+//comments
+
+if (not info("found"))
+    window Purchase
+    downrecord
+else
+    if vRemain=«On Order»
+    goto Skip
+    endif
+    noyes "RemainingOnOrder: "+str(vRemain)+¶+"On order: "+str(«On Order»)+¶+
+    "Do you want to update On Order?"
+        if clipboard()="Yes"
+            «On Order»=vRemain
+            message "On Order changed to: "+str(«On Order»)
+        endif
+        
+Skip:
+window Purchase            
+downrecord
+endif
+until info("stopped")˛/On Order Correctionˇ˛SourceGetˇlocal Dictionary, ProcedureList
+//this saves your procedures into a variable
+ 
+ 
+//step one
+saveallprocedures "", Dictionary
+clipboard()=Dictionary
+//now you can paste those into a text editor and make your changes
+STOP
+ 
+//step 2
+//this lets you load your changes back in from an editor and put them in
+//copy your changed full procedure list back to your clipboard
+//now comment out from step one to step 2
+//run the procedure one step at a time to load the new list on your clipboard back in
+Dictionary=clipboard()
+loadallprocedures Dictionary,ProcedureList
+message ProcedureList //messages which procedures got changed
+˛/SourceGetˇ
