@@ -1,5 +1,12 @@
 global arrayLbsPerYear, ItemNumArray,wIngList,wMixIngList,wMxList,arrayFiles,thisfolder,wComments,wPurch,TotalSoldArray,
-CurrentYear,PrevYear,2YearsAgo,3YearsAgo, Yr1Array,Yr2Array,Yr3Array,Yr4Array,SoldHold
+CurrentYear,PrevYear,TwoYearsAgo,ThreeYearsAgo, Yr1Array,Yr2Array,Yr3Array,Yr4Array,SoldHold
+
+yesno "Years to get data from are: "+CurrentYear+", "+PrevYear+", "+TwoYearsAgo+", and "+ThreeYearsAgo+" ?"
+if clipboard()="No"
+message "Panorama will open the Procedure you need to edit. Find the //********** below"
+goprocedure ".BuildData"
+stop
+endif
 
 wPurch="MixPurchasingDB"
 wComments="45ogscomments"
@@ -17,17 +24,20 @@ Yr4Array=""
 window wIngList
 arraybuild ItemNumArray, ¶, "", «ItemList»
 
-window wComments
+
+//********
+//********
 //these make it so all you have to do is chage the following code to make the rest work
-//just change 4Xsold to the proper years!
-//it also makes sure you're not already selected or summaried
+//just change ##sold to the proper years!
+window wComments
 CurrentYear="45sold"
 PrevYear="44sold"
-2YearsAgo="43sold"
-3YearsAgo="44sold"
+TwoYearsAgo="43sold"
+ThreeYearsAgo="42sold"
 selectall
 removeallsummaries
-
+//********
+//********
 
 select ItemNumArray contains str(«parent_code»)
 field «parent_code»
@@ -79,14 +89,14 @@ loop
 
     if info("summary")>0
         arraystrip Yr3Array,¶
-        field (2YearsAgo)
+        field (TwoYearsAgo)
         «» = float(arraynumerictotal(Yr3Array,¶))
         Yr3Array=""
         downrecord
         repeatloopif (not info("stopped"))
     endif
 
-    field (2YearsAgo)
+    field (TwoYearsAgo)
         copycell
         SoldHold=clipboard()
         Yr3Array=str(float(SoldHold)*float(ActWt))+¶+str(Yr3Array)
@@ -99,19 +109,27 @@ loop
 
     if info("summary")>0
         arraystrip Yr4Array,¶
-        field (3YearsAgo)
+        field (ThreeYearsAgo)
         «» = float(arraynumerictotal(Yr4Array,¶))
         Yr4Array=""
         downrecord
         repeatloopif (not info("stopped"))
     endif
 
-    field (3YearsAgo)
+    field (ThreeYearsAgo)
         copycell
         SoldHold=clipboard()
         Yr4Array=str(float(SoldHold)*float(ActWt))+¶+str(Yr4Array)
     downrecord
 until info("stopped")
+
+lastrecord
+deleterecord
+nop
+
+outlinelevel "2"
+
+call .AppendToMixPurch
 
 /*
 Legend
