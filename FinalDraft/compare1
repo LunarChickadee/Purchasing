@@ -1,0 +1,74 @@
+window wPurch
+
+global strItemArray, counter, 
+MixLbsDict, ItemSelection,NumGet,PercGet,LbsGet,
+IngPer,LineArrayIngs,checkSelect,DictNames,
+counter2,choice2,LbsField,LbsMath
+
+IngPer=""
+
+MixLbsDict=""
+
+arraybuild strItemArray, ¶,"",«ItemNum»
+
+counter=1
+loop
+    window wMixes
+    selectall
+    ItemSelection=array(strItemArray,counter,¶)
+    select exportline() contains ItemSelection
+        if info("empty")
+        counter=counter+1
+        repeatloopif counter<info("records")+1
+        endif
+    checkSelect=info("selected")
+    RepeatFind:
+    LineArrayIngs=lineitemarray(ItemIngredientΩ,¶)
+    NumGet=arraysearch(LineArrayIngs,ItemSelection,1,¶ )
+        if val(NumGet)<1
+            downrecord
+             if info("stopped")
+            goto Skip
+        else 
+            goto RepeatFind
+        endif
+        endif
+    ;NumGet=striptonum(info("fieldname"))
+    IngPer="IngredientPercentage"+str(NumGet)
+    LbsField="IngredientPoundsNeeded"+str(NumGet)
+    field (IngPer)
+    PercGet=«»/100
+    field (LbsField)
+    LbsGet=float(«»)
+    LbsMath=PercGet*LbsGet
+    setdictionaryvalue MixLbsDict,str(«Mix Parent Code»),str(LbsMath)
+    ;next
+    ;debug
+    downrecord
+        if info("stopped")
+            goto Skip
+        else 
+            goto RepeatFind
+        endif
+    ;repeatloopif info("found")
+debug
+    Skip:
+    window wPurch
+
+    select ItemNum contains ItemSelection
+    dumpdictionary MixLbsDict, MixPercDict
+    
+    /*
+    //testing a method to change the value in place
+    window wMixes
+    DictNames=listdictionarynames(MixLbsDict)
+        counter2=1
+        loop
+        choice2=array(Dictnames,counter2,¶)
+        setdictionaryvalue MixLbsDict,Choice2,
+     //******end test
+
+    MixLbsDict=""
+    counter=counter+1
+until counter>info("records")
+
