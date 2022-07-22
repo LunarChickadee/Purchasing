@@ -10,6 +10,10 @@ MixLbsItem, MixWeightItemDict,YrCounter,AppendToMixWeight,
 permanent vTimeLastUsed
 ////************
 ////************
+
+//********
+//********
+//these make it so all you have to do is chage the following code to make the rest work
 /*
 Edit
 the
@@ -60,10 +64,6 @@ window wIngList
 arraybuild ItemNumArray, ¶, "", «ItemList»
 
 
-//********
-//********
-//these make it so all you have to do is chage the following code to make the rest work
-//just change ##sold to the proper years!
 window wComments
 selectall
 removeallsummaries
