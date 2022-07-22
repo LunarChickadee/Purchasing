@@ -7,12 +7,10 @@ MixLbsDict, DictNamesArray,ItemSelect,
 PercHold, DictHold, PercDictArray,
 MixPercChoice,PercChoice,ItemNumCounter,YrHolder,MixYrHold,
 MixLbsItem, MixWeightItemDict,YrCounter,AppendToMixWeight,
+WindowCheck, WindowsNeeded
 permanent vTimeLastUsed
 ////************
 ////************
-
-//********
-//********
 //these make it so all you have to do is chage the following code to make the rest work
 /*
 Edit
@@ -39,6 +37,15 @@ wMixes="Mixes Updated"
 
 ///*************
 
+WindowCheck=info("windows")
+
+WindowsNeeded=wPurch+¶+wComments+wMxList+wIngList+wMixes
+
+if WindowCheck notcontains WindowsNeeded
+message "nope!"
+endif
+debug
+
 MixLbsDict=""
 PercHold=""
 MixWeightItemDict=""
@@ -64,6 +71,8 @@ window wIngList
 arraybuild ItemNumArray, ¶, "", «ItemList»
 
 
+//********
+//********
 window wComments
 selectall
 removeallsummaries
