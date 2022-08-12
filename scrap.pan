@@ -1,7 +1,3 @@
-arraybuild intorder, ¶, "", array(arrayscan(forordering, ¶, seq()),¬, 1)+¬+array(arrayscan(forordering, ¶, seq()),¬, 2)+¬+
-    array(arrayscan(forordering, ¶, seq()),¬, 3)+¬+array(arrayscan(forordering, ¶, seq()),¬, 4)+¬+
-    array(arrayscan(forordering, ¶, seq()),¬, 5)+¬+array(arrayscan(forordering, ¶, seq()),¬, 6)+¬+
-    array(arrayscan(forordering, ¶, seq()),¬, 7)+¬+¬+¬+¬+array(arrayscan(forordering, ¶, seq()),¬, 8)
-clipboard()=intorder
+«Ingredient 1 Percentage»+«Ingredient 2 Percentage»+«Ingredient 3 Percentage»+«Ingredient 4 Percentage»+«Description 5 Percentage»+«Ingredient 6 Percentage»+«Ingredient 7 Percentage»+«Ingredient 8 Percentage»+«Ingredient 9 Percentage»+«Ingredient 10 Percentage»+«Ingredient 11 Percentage»
 
-
+sum(IngredientPercentage)
