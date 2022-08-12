@@ -9,7 +9,6 @@ MixPercChoice,PercChoice,ItemNumCounter,YrHolder,MixYrHold,
 MixLbsItem, MixWeightItemDict,YrCounter,AppendToMixWeight,
 WindowCheck, WindowsNeeded
 permanent vTimeLastUsed
-
 ////************
 ////************
 //these make it so all you have to do is chage the following code to make the rest work
@@ -17,7 +16,8 @@ permanent vTimeLastUsed
 Edit
 the
 following
-fields and databases!
+fields and databases 
+to the correct years!
 */
 //**************
 Yr1="45 Mix Pounds Sold"
@@ -37,17 +37,16 @@ wIngList="IngMixList"
 wMixes="Mixes Updated"
 
 ///*************
-/*
+
+/*this is just a test of how to get files to open programatically\
+
+Doesn't currently work
+
 WindowCheck=info("windows")
 
 WindowsNeeded=wPurch+¶+wComments+wMxList+wIngList+wMixes
-
-if WindowCheck notcontains WindowsNeeded
-message "nope!"
-endif
-debug
-
 */
+
 
 MixLbsDict=""
 PercHold=""
@@ -59,6 +58,10 @@ message "Panorama will open the Procedure you need to edit. Find the //*********
 goprocedure "ReBuildDatabase"
 stop
 endif
+
+
+
+noshow
 
 
 ItemNumArray=""
@@ -85,6 +88,7 @@ removeallsummaries
 select ItemNumArray contains str(«parent_code»)
 field «parent_code»
 groupup
+
 
 
 //loop1
@@ -166,50 +170,54 @@ loop
     downrecord
 until info("stopped")
 
+
+
+
 lastrecord
 deleterecord
 nop
 
 outlinelevel "2"
 
-///**********************************************Part 2 Appending to The Purchasing Database
 
-///Note: This uses global variables from .BuildData
+/*
+****Part 2 Appending to The Purchasing Database
+*/
+
+;debug
 
 global ParentDict, SoldArray, ParentCode, counter, Name,Lbs
 
 ParentDict=""
 SoldArray=""
 
-
-
 ///loop1
 window wComments
 firstrecord
 loop
-field (CurrentYear)
-copycell
-SoldArray=str(clipboard())
-Name=str(«parent_code»)
-setdictionaryvalue ParentDict, Name, SoldArray
-downrecord
-;message dumpdictionary(ParentDict)
+    field (CurrentYear)
+    copycell
+    SoldArray=str(clipboard())
+    Name=str(«parent_code»)
+    setdictionaryvalue ParentDict, Name, SoldArray
+    downrecord
+    ;message dumpdictionary(ParentDict)
 until info("stopped")
 
 window wPurch
 firstrecord
 loop
-Name=Str(«ItemNum»)
-if ParentDict contains «ItemNum»
-LbsThisYear=val(getdictionaryvalue(ParentDict,Name))
-downrecord
-repeatloopif (not info("stopped"))
-endif
-downrecord
+    Name=Str(«ItemNum»)
+        if ParentDict contains «ItemNum»
+        LbsThisYear=val(getdictionaryvalue(ParentDict,Name))
+        downrecord
+            repeatloopif (not info("stopped"))
+    endif
+    downrecord
 until info("stopped")
 
 //Clears the Dictionary
-ParentDict=""
+deletedictionaryvalue ParentDict,""
 ///loop2
 window wComments
 firstrecord
@@ -237,7 +245,7 @@ downrecord
 until info("stopped")
 
 //Clears the Dictionary
-ParentDict=""
+deletedictionaryvalue ParentDict,""
 ///loop3
 window wComments
 firstrecord
@@ -292,6 +300,8 @@ endif
 downrecord
 until info("stopped")
 
+deletedictionaryvalue ParentDict,""
+
 lastrecord
 if str(ItemNum)=""
 deleterecord
@@ -315,6 +325,13 @@ MixLbsDict=""
 arraybuild strItemArray, ¶,"",«ItemNum»
 
 counter=1
+
+/*
+8012
+9001
+3432
+
+*/
 loop
     window wMixes
     selectall
@@ -360,7 +377,7 @@ loop
     counter=counter+1
 until counter>info("records")
 
-////*****Part 4 Get Percentages
+////*****Part 4 Get Perc * Weight
 
 //Builds Dictionary of MixNumber and The Total Pounds Sold for X Year
 Window wMixes
@@ -492,3 +509,5 @@ goto NextYear
 endif
 
 vTimeLastUsed=datepattern(today(),"mm-dd-YY")
+
+endnoshow
